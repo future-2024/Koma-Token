@@ -157,8 +157,6 @@ contract Pot {
     }
 
     function initialize(myLibrary.createPotValue memory sValue) external {
-        // require(sValue.expiryTime.startTime > block.timestamp, "Time has already been exit!");
-        // require(sValue.expiryTime.minimumTime > block.timestamp, "Minimum Time has already been exit!");
         if (lengthOfBidDistribution > 0) {
             require(topOwner == msg.sender, "Error: you can not change initial variable");
         }
@@ -430,7 +428,7 @@ contract ControlPot {
         require(_expirationTime.startTime > 0, "Expire Time cannot be 0 or smaller than");
         require(_expirationTime.startTime > _expirationTime.minimumTime, "Start time should be bigger than minimum time");
         require(_arrayData.length == 3, "Don't mismatch number of variable. Please check your variable for creating!");
-        require(bidPercent == (percent- toOwnerFee - _arrayData[0] - _arrayData[1]), "Fee is not 100%!");
+        require(bidPercent == (percent.sub(toOwnerFee).sub(_arrayData[0]).sub(_arrayData[1])), "Fee is not 100%!");
         bytes memory bytecode = type(Pot).creationCode;
         myLibrary.createPotValue memory cValue;
         
