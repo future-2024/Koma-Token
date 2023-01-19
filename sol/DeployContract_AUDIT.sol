@@ -211,7 +211,7 @@ contract Pot {
         uint256 value = msg.value;
         lastBidWinner = msg.sender;
 
-        if(expExpiryOption == 2 && expirationTime > expMinimumTime) {
+        if(expExpiryOption == 1 && expirationTime > expMinimumTime) {
             expirationTime = expirationTime.sub(expDecreaseBy);
         }
 
@@ -249,7 +249,7 @@ contract Pot {
         uint256 value = bidAmount;
         lastBidWinner = msg.sender;
 
-        if(expExpiryOption == 2 && expirationTime > expMinimumTime) {
+        if(expExpiryOption == 1 && expirationTime > expMinimumTime) {
             expirationTime = expirationTime.sub(expDecreaseBy);
         }
 
@@ -401,10 +401,9 @@ contract ControlPot {
             bidPercent = bidPercent.add(_toPercent[i]);
         }
         require(_potAmount > 0, "Pot amount should be lager than 0!");
-        require(_toAddress.length > 0, "Address cannot be empty");
-        require(_toPercent.length > 0, "Percentage cannot be empty");
         require(_arrayData.length == 3, "Length of array data should be 3");
         require(_bid.bidOption <= 3, "Your bid option is wrong!");
+        require(_expirationTime.expiryOption < 2,"Your Expiry option is wrong!");
         require(_bid.variable2 < 100, "Your bid variale2 option is wrong!");
         require(_potTokenIndex <= tokenList.length, "your pot token has been set wrongly!");
         require(_bidTokenIndex <= tokenList.length, "your bid token has been set wrongly!");
