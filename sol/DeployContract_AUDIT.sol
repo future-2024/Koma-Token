@@ -163,7 +163,7 @@ contract Pot {
         potToken = sValue.potToken;
         bidToken = sValue.bidToken;
         isNative = sValue.isNative;        
-        _token = IERC20(address(potToken));
+        _token = IERC20(address(bidToken));
         lengthOfBidDistribution = sValue.toAddress.length;
         for(uint256 i = 0; i < sValue.toAddress.length; i++) {
             bidInfo[i].toAddress = sValue.toAddress[i];
