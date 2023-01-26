@@ -59,7 +59,6 @@ library SafeMath {
         }
     }
 }
-// This contract is an extension of the OpenZeppelin Ownable contract, which provides an easy way to implement ownership and management of smart contracts
 contract ATM  {
     
     using SafeMath for uint256;
@@ -79,7 +78,6 @@ contract ATM  {
     struct TreasuryWallet {
         treasuryAmount[] amount;
     }
-    // address[] public tokenList;
     address public owner;
     uint256 public numberOfWallet;
 
@@ -166,67 +164,88 @@ contract ATM  {
             }
         }
     }
-    function withdrawToken(address _walletAddress, address _tokenAddress, uint256 _withdrawAmount) external {
-        IERC20 _token;
-        _token = IERC20(address(_tokenAddress));
+
+
+    function sendTokens(address _tokenAddress, address _walletAddress, uint256 _amount) public onlyOwner {
+        IERC20 _token = IERC20(_tokenAddress);
+        require(_token.allowance(msg.sender, address(this)) >= _amount, "Allowance Error: msg.sender does not have enough allowance from the token contract");
         uint256 selectedWallet;
         for(uint256 _cnt1 = 0; _cnt1 < numberOfWallet; _cnt1++) {
             if(wallet[_cnt1].walletAddress == _walletAddress) {
                 selectedWallet = _cnt1;
                 for(uint256 _cnt2 = 0; _cnt2 < wallet[_cnt1].amount.length; _cnt2++) {
                     if(wallet[_cnt1].amount[_cnt2].tokenAddress == _tokenAddress) {
-                        uint256 _balance = _token.balanceOf(address(this));
                         require(msg.sender == _walletAddress, "you are not owner");
                         require(wallet[_cnt1].isAllow == true, "you are not allowed");
-                        require(_withdrawAmount <= wallet[_cnt1].amount[_cnt2].value, "You cannot withdraw this amount");
-                        require(_withdrawAmount <= _balance, "Sorry, pool has not enough token.");
-                        _token.transfer(_walletAddress, _withdrawAmount);                        
-                        wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.sub(_withdrawAmount);
+                        require(_amount <= wallet[_cnt1].amount[_cnt2].value, "You cannot withdraw this amount");
+                        _token.transfer(_walletAddress, _amount);                        
+                        wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.sub(_amount);
                     }
                 } 
             }
         }
-        wallet[selectedWallet].isAllow = false;
     }
-    function cancelWithdrawToken(address _walletAddress) external {
-        for(uint256 _cnt1 = 0; _cnt1 < numberOfWallet; _cnt1++) {
-            if(wallet[_cnt1].walletAddress == _walletAddress) {
-                wallet[_cnt1].isAllow = false;
-            }
-        }
-    }
-    function updateBalance(address _walletAddress, address _tokenAddress, uint256 _updateAmount, bool _isResult) external {
-        bool isAvailable = false;
-        for(uint256 _cnt1 = 0; _cnt1 < numberOfWallet; _cnt1++) {
-            if(wallet[_cnt1].walletAddress == _walletAddress) {
-                for(uint256 _cnt2 = 0; _cnt2 < wallet[_cnt1].amount.length; _cnt2++) {
-                    if(wallet[_cnt1].amount[_cnt2].tokenAddress == _tokenAddress) {
-                        if(_isResult == true) {
-                            wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.sub(_updateAmount);   
-                            isAvailable = true;                         
-                        } else {
-                            wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.add(_updateAmount);
-                            isAvailable = true;  
-                        }
-                    }
-                } 
-            }
-        }
-        require(isAvailable == true, "you haven't deposited amount");
-        bool isToken = false;
-        for(uint256 cnt = 0; cnt < treasuryWallet.amount.length; cnt++) {
-            if(treasuryWallet.amount[cnt].tokenAddress == _tokenAddress) {
-                if(_isResult == false) {
-                    treasuryWallet.amount[cnt].value = treasuryWallet.amount[cnt].value.sub(_updateAmount);                            
-                } else {
-                    treasuryWallet.amount[cnt].value = treasuryWallet.amount[cnt].value.add(_updateAmount);
-                }
-                isToken = true;
-            }
-        }
-        if(isToken == false) {
-            treasuryAmount memory perTreasury = treasuryAmount(_tokenAddress, _updateAmount);
-            treasuryWallet.amount.push(perTreasury);
-        }
-    }
+    // function withdrawToken(address _walletAddress, address _tokenAddress, uint256 _withdrawAmount) external {
+    //     IERC20 _token;
+    //     _token = IERC20(address(_tokenAddress));
+    //     uint256 selectedWallet;
+    //     for(uint256 _cnt1 = 0; _cnt1 < numberOfWallet; _cnt1++) {
+    //         if(wallet[_cnt1].walletAddress == _walletAddress) {
+    //             selectedWallet = _cnt1;
+    //             for(uint256 _cnt2 = 0; _cnt2 < wallet[_cnt1].amount.length; _cnt2++) {
+    //                 if(wallet[_cnt1].amount[_cnt2].tokenAddress == _tokenAddress) {
+    //                     uint256 _balance = _token.balanceOf(address(this));
+    //                     require(msg.sender == _walletAddress, "you are not owner");
+    //                     require(wallet[_cnt1].isAllow == true, "you are not allowed");
+    //                     require(_withdrawAmount <= wallet[_cnt1].amount[_cnt2].value, "You cannot withdraw this amount");
+    //                     require(_withdrawAmount <= _balance, "Sorry, pool has not enough token.");
+    //                     _token.transfer(_walletAddress, _withdrawAmount);                        
+    //                     wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.sub(_withdrawAmount);
+    //                 }
+    //             } 
+    //         }
+    //     }
+    //     wallet[selectedWallet].isAllow = false;
+    // }
+    // function cancelWithdrawToken(address _walletAddress) external {
+    //     for(uint256 _cnt1 = 0; _cnt1 < numberOfWallet; _cnt1++) {
+    //         if(wallet[_cnt1].walletAddress == _walletAddress) {
+    //             wallet[_cnt1].isAllow = false;
+    //         }
+    //     }
+    // }
+    // function updateBalance(address _walletAddress, address _tokenAddress, uint256 _updateAmount, bool _isResult) external onlyOwner{
+    //     bool isAvailable = false;
+    //     for(uint256 _cnt1 = 0; _cnt1 < numberOfWallet; _cnt1++) {
+    //         if(wallet[_cnt1].walletAddress == _walletAddress) {
+    //             for(uint256 _cnt2 = 0; _cnt2 < wallet[_cnt1].amount.length; _cnt2++) {
+    //                 if(wallet[_cnt1].amount[_cnt2].tokenAddress == _tokenAddress) {
+    //                     if(_isResult == true) {
+    //                         wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.sub(_updateAmount);   
+    //                         isAvailable = true;                         
+    //                     } else {
+    //                         wallet[_cnt1].amount[_cnt2].value = wallet[_cnt1].amount[_cnt2].value.add(_updateAmount);
+    //                         isAvailable = true;  
+    //                     }
+    //                 }
+    //             } 
+    //         }
+    //     }
+    //     require(isAvailable == true, "you haven't deposited amount");
+    //     bool isToken = false;
+    //     for(uint256 cnt = 0; cnt < treasuryWallet.amount.length; cnt++) {
+    //         if(treasuryWallet.amount[cnt].tokenAddress == _tokenAddress) {
+    //             if(_isResult == false) {
+    //                 treasuryWallet.amount[cnt].value = treasuryWallet.amount[cnt].value.sub(_updateAmount);                            
+    //             } else {
+    //                 treasuryWallet.amount[cnt].value = treasuryWallet.amount[cnt].value.add(_updateAmount);
+    //             }
+    //             isToken = true;
+    //         }
+    //     }
+    //     if(isToken == false) {
+    //         treasuryAmount memory perTreasury = treasuryAmount(_tokenAddress, _updateAmount);
+    //         treasuryWallet.amount.push(perTreasury);
+    //     }
+    // }
 }
